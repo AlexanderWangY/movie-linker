@@ -1,24 +1,35 @@
-mod graph;
+use csv::Reader;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::io::{self, Write};
 
-use axum::{routing::get, Router};
-use core::panic;
-
-async fn hello_world() -> &'static str {
-    println!("[GET] hello_world()");
-    "Hello world!"
+#[derive(Debug, Deserialize, Serialize)]
+struct Record {
+    actor: String,
+    movies: String,
 }
 
-#[tokio::main]
-async fn main() {
-    let app: Router<()> = Router::new().route("/", get(hello_world));
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut reader = Reader::from_path("moviedatanew.csv")?;
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    let mut iter = reader.deserialize();
 
-    if let Ok(addr) = listener.local_addr() {
-        println!("Server running on http://{}", addr);
+    // get the user's index to check
+    print!("Please enter a floating point number: ");
+    io::stdout().flush().unwrap();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    let num: usize = input.trim().parse().unwrap();
+
+    if let Some(result) = iter.nth(num) {
+        let record: Record = result?;
+
+        let movies: Vec<String> = serde_json::from_str(&record.movies)?;
+
+        println!("Actor: {}", record.actor);
+        println!("Movies: {:?}", movies);
     } else {
-        panic!("No address binded!");
+        println!("Row {} not found!", num);
     }
-
-    axum::serve(listener, app).await.unwrap();
+    Ok(())
 }
