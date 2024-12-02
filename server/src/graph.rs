@@ -5,7 +5,6 @@ use std::{
 
 use csv::Reader;
 use serde::{Deserialize, Serialize};
-use serde_json::from_str;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Record {
@@ -38,11 +37,23 @@ impl MovieGraph {
         for line in iter {
             match line {
                 Ok(record) => {
-                    let movie = &record.movie;
-                    let actors: Vec<String> = serde_json::from_str(&record.actors)?;
+                    let movie: String = match serde_json::from_str(&record.movie) {
+                        Ok(movie) => movie,
+                        Err(_) => record.movie.clone().to_string(),
+                    };
+
+                    let actors: Vec<String> = match serde_json::from_str(&record.actors) {
+                        Ok(actors) => actors,
+                        Err(err) => {
+                            eprintln!("Failed to deserialize actors: {}", err);
+                            vec![]
+                        }
+                    };
+                    // This parses into a string and a vector of strings for actors
+                    // There is a weird bug where it'll stop printing at 186,738 lines, this might be because of an unexpected token?
 
                     count += 1;
-                    println!("{}. {}, {:?}", count, movie, actors);
+                    println!("{}. {}, {}", count, movie, actors[0]);
                 }
                 Err(err) => println!("Error parsing: {:?}", err),
             }
