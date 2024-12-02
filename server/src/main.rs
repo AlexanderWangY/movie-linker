@@ -5,8 +5,8 @@ use std::io::{self, Write};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Record {
-    actor: String,
-    movies: String,
+    movie: String,
+    actors: String,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -24,10 +24,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(result) = iter.nth(num) {
         let record: Record = result?;
 
-        let movies: Vec<String> = serde_json::from_str(&record.movies)?;
+        let actors: Vec<String> = serde_json::from_str(&record.actors)?;
 
-        println!("Actor: {}", record.actor);
-        println!("Movies: {:?}", movies);
+        println!("Movie: {}", record.movie);
+        println!("Actors: {:?}", actors);
     } else {
         println!("Row {} not found!", num);
     }

@@ -23,5 +23,5 @@ impl MovieGraph {
         }
     }
 
-    pub fn add_movie()
+    pub fn parse_csv(self, path: String) {}
 }
