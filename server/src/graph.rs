@@ -1,7 +1,10 @@
 use std::{
     collections::{HashMap, HashSet},
-    error::Error,
+    error::Error, hash::Hash,
 };
+
+use std::fs::File;
+use std::path::Path;
 
 use csv::Reader;
 use serde::{Deserialize, Serialize};
@@ -54,9 +57,28 @@ impl MovieGraph {
 
                     count += 1;
                     println!("{}. {}, {}", count, movie, actors[0]);
+
+                    //Insert a vertex after the respective movie has been read
+                    self.adj_list.insert(movie.to_string(), HashMap::new());
                 }
                 Err(err) => println!("Error parsing: {:?}", err),
             }
+        }
+        Ok(())
+    }
+
+    pub fn buildGraph(&mut self, path: String) -> Result<(), Box<dyn Error>> {
+        let mut current_map : HashMap<String, Vec<String>> = HashMap::new();
+        type MovieTitles = Vec<String>;
+        let mut actor_list: Vec<String> = Vec::new();
+        let mut graph_of_movies: HashMap<String, Vec<String>> = HashMap::new();
+        let empty: Vec<String> = Vec::new();
+        
+        let file = File::open(path)?;
+        let mut rdr = csv::Reader::from_reader(file);
+
+        for result in rdr.deserialize(){
+            let record : MovieTitles = result?;
         }
 
         Ok(())

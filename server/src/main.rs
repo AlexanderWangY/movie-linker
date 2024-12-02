@@ -31,7 +31,5 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    println!("Matthew is Connected!");
-
     Ok(())
 }
