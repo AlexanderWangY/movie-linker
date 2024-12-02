@@ -1,35 +1,35 @@
-use csv::Reader;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::io::{self, Write};
+mod graph;
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Record {
-    movie: String,
-    actors: String,
-}
+use std::error::Error;
+
+use graph::MovieGraph;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut reader = Reader::from_path("moviedatanew.csv")?;
+    // let mut reader = csv::Reader::from_path("moviedatanew.csv")?;
+    // for (i, result) in reader.records().enumerate() {
+    //     match result {
+    //         Ok(_) => {
+    //             println!("{i}, processed fine");
+    //         }
+    //         Err(err) => {
+    //             eprintln!("Error on record {}: {}", i, err);
+    //             break; // or continue if you want to skip errors
+    //         }
+    //     }
+    // }
 
-    let mut iter = reader.deserialize();
+    // Ok(())
 
-    // get the user's index to check
-    print!("Please enter a floating point number: ");
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    let num: usize = input.trim().parse().unwrap();
+    let mut graph = MovieGraph::new();
 
-    if let Some(result) = iter.nth(num) {
-        let record: Record = result?;
-
-        let actors: Vec<String> = serde_json::from_str(&record.actors)?;
-
-        println!("Movie: {}", record.movie);
-        println!("Actors: {:?}", actors);
-    } else {
-        println!("Row {} not found!", num);
+    match graph.parse_csv(String::from("moviedatanew.csv")) {
+        Ok(_) => {
+            println!("Successfully parsed through")
+        }
+        Err(err) => {
+            println!("Something went wrong {:?}", err)
+        }
     }
+
     Ok(())
 }
