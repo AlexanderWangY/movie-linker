@@ -4,9 +4,10 @@ use std::{
     error::Error, hash::Hash,
 };
 
-use std::{collections::VecDeque, fs::File, io::{BufWriter, Write}};
+use std::{collections::VecDeque, fs::File, io::{BufWriter, Write}, time::Instant};
 use csv::Reader;
 use serde::{Deserialize, Serialize};
+use tokio::time::error::Elapsed;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Record {
@@ -93,6 +94,7 @@ impl MovieGraph {
     }
 
     fn bfs_traversal(&mut self, src : String){
+        let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
         let mut deq: VecDeque<String> = VecDeque::new();
         
@@ -112,11 +114,14 @@ impl MovieGraph {
             }
         }
 
+        let timelapsed = Instant::now();
+        println!("Time Elapsed using BFS: {:?}", timelapsed.duration_since(start));
         //Return value here
     }
 
     //Nice little change of code :D
     fn dfs_traversal(&mut self, src : String){
+        let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
         let mut deq: VecDeque<String> = VecDeque::new();
         
@@ -136,6 +141,8 @@ impl MovieGraph {
             }
         }
 
+        let timelapsed = Instant::now();
+        println!("Time Elapsed using DFS{:?}", timelapsed.duration_since(start));
         //Return value here
     }
 }
