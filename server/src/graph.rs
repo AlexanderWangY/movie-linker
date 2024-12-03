@@ -4,7 +4,7 @@ use std::{
     error::Error, hash::Hash,
 };
 
-use std::{fs::File, io::{BufWriter, Write}};
+use std::{collections::VecDeque, fs::File, io::{BufWriter, Write}};
 use csv::Reader;
 use serde::{Deserialize, Serialize};
 
@@ -90,5 +90,52 @@ impl MovieGraph {
         
 
         Ok(())
+    }
+
+    fn bfs_traversal(&mut self, src : String){
+        let mut visited: HashMap<String, bool> = HashMap::new();
+        let mut deq: VecDeque<String> = VecDeque::new();
+        
+        visited.insert(src.clone(), true);
+        deq.push_back(src);
+
+        while !deq.is_empty(){
+            let front = deq.front();
+            //VISIT FRONT
+            deq.pop_front();
+
+            for i in &self.adj_list{
+                if !visited[i.0]{
+                    visited.insert(i.0.to_string(), true);
+                    deq.push_back(i.0.to_string());
+                }
+            }
+        }
+
+        //Return value here
+    }
+
+    //Nice little change of code :D
+    fn dfs_traversal(&mut self, src : String){
+        let mut visited: HashMap<String, bool> = HashMap::new();
+        let mut deq: VecDeque<String> = VecDeque::new();
+        
+        visited.insert(src.clone(), true);
+        deq.push_front(src);
+
+        while !deq.is_empty(){
+            let front = deq.front();
+            //VISIT FRONT
+            deq.pop_front();
+
+            for i in &self.adj_list{
+                if !visited[i.0]{
+                    visited.insert(i.0.to_string(), true);
+                    deq.push_front(i.0.to_string());
+                }
+            }
+        }
+
+        //Return value here
     }
 }
