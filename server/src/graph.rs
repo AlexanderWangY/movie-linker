@@ -1,8 +1,10 @@
+#[allow(unused)]
 use std::{
     collections::{HashMap, HashSet},
-    error::Error,
+    error::Error, hash::Hash,
 };
 
+use std::{fs::File, io::{BufWriter, Write}};
 use csv::Reader;
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +18,7 @@ struct Record {
 #[allow(dead_code)]
 pub struct MovieGraph {
     // Map of movie names, their respective linked movie, and all the actors that connect them
-    adj_list: HashMap<String, HashMap<String, HashSet<String>>>,
+    adj_list: HashMap<String, Vec<String>>,
 }
 
 #[allow(dead_code)]
@@ -29,11 +31,14 @@ impl MovieGraph {
 
     pub fn parse_csv(&mut self, path: String) -> Result<(), Box<dyn Error>> {
         let mut reader = Reader::from_path(path)?;
-
+        let mut current_map: HashMap<String, Vec<String>> = HashMap::new();
         let iter = reader.deserialize::<Record>();
 
+        let graphfile = File::create("graphfile")?;
+        let mut writer = BufWriter::new(graphfile);
         let mut count = 0;
 
+        println!("Going through values...");
         for line in iter {
             match line {
                 Ok(record) => {
@@ -53,11 +58,36 @@ impl MovieGraph {
                     // There is a weird bug where it'll stop printing at 186,738 lines, this might be because of an unexpected token?
 
                     count += 1;
-                    println!("{}. {}, {}", count, movie, actors[0]);
+                    println!("{}", count);
+                    
+                    //JSON Script- be sure to credit pages at the end
+                    current_map.insert(movie, actors);
+                    
                 }
                 Err(err) => println!("Error parsing: {:?}", err),
             }
         }
+
+        println!("Creating graph file...");
+        let mut films: Vec<String> = Vec::new();
+        for (first_key, first_val) in &current_map{
+            let _ = serde_json::to_writer(&mut writer, &first_key);
+            for(second_key, second_val) in &current_map{
+                for i in second_val.clone(){
+                    if first_val.contains(&i) && first_val != second_val && !films.contains(second_key){
+                        films.push(second_key.to_string());
+                    }
+                }
+
+                if films.len() > 0{
+                    let _ = serde_json::to_writer(&mut writer, &films);
+                    films.clear();
+                }
+            }
+            writer.write( b"\n")?;
+            let _ = writer.flush();
+        }
+        
 
         Ok(())
     }
