@@ -31,5 +31,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    graph.bfs_traversal("Beg".to_string(), "Digging Up the Marrow".to_string());
+    
+
     Ok(())
 }

@@ -1,7 +1,7 @@
 use std::time::Instant;
 #[allow(unused)]
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     error::Error,
     hash::Hash,
 };
@@ -16,31 +16,33 @@ struct Record {
     actor: String,
 }
 
-// #[derive(Debug)]
-// struct Connection{
-//     actors: Vec<String>,
-//     from: String,
-//     to: String
-// }
+#[derive(Debug)]
+struct Connection{
+    actors: Vec<String>,
+    from: String,
+    to: String
+}
 
-// //Hopefully this is allowed???
-// #[allow(unconditional_recursion)]
-// impl Connection {
-//     pub fn clone(&self) -> Self{
-//         return self.clone();
-//     }
-// }
+//Hopefully this is allowed???
+#[allow(unconditional_recursion)]
+impl Connection {
+    pub fn clone(&self) -> Self{
+        return self.clone();
+    }
+}
 
-// #[derive(Debug)]
-// struct Path{
-//     path: Vec<Connection>
-// }
+#[derive(Debug)]
+struct Path{
+    path: Vec<Connection>
+}
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct MovieGraph {
     // Map of movie names, their respective linked movie, and all the actors that connect them
     adj_list: HashMap<String, HashMap<String, HashSet<String>>>,
+    final_value: Connection, 
+    connections : Path
 }
 
 #[allow(dead_code)]
@@ -48,9 +50,16 @@ impl MovieGraph {
     pub fn new() -> Self {
         MovieGraph {
             adj_list: HashMap::new(),
+            final_value: Connection{
+                actors : vec![],
+                from : "".to_string(),
+                to : "".to_string()
+            },
+            connections: Path{
+                path: vec![]
+            }
         }
     }
-
     pub fn parse_csv(&mut self, path: String) -> Result<(), Box<dyn Error>> {
         let mut reader = Reader::from_path(path)?;
         let iter = reader.deserialize::<Record>();
@@ -92,70 +101,70 @@ impl MovieGraph {
         Ok(())
     }
 
-    // fn bfs_traversal(&mut self, src: String, des: String) -> () {
-    //     self.final_value.from = src.clone();
-    //     self.final_value.to = des.clone();
+    pub fn bfs_traversal(&mut self, src: String, des: String) -> () {
+        self.final_value.from = src.clone();
+        self.final_value.to = des.clone();
 
-    //     let start = Instant::now();
-    //     let mut visited: HashMap<String, bool> = HashMap::new();
-    //     let mut deq: VecDeque<String> = Default::default();
+        let start = Instant::now();
+        let mut visited: HashMap<String, bool> = HashMap::new();
+        let mut deq: VecDeque<String> = Default::default();
 
-    //     visited.insert(src.clone(), true);
-    //     deq.push_back(src);
+        visited.insert(src.clone(), true);
+        deq.push_back(src);
 
-    //     while !deq.is_empty() {
-    //         self.final_value
-    //             .actors
-    //             .push(deq.front().expect("").to_string());
-    //         deq.pop_front();
+        while !deq.is_empty() {
+            self.final_value
+                .actors
+                .push(deq.front().expect("").to_string());
+            deq.pop_front();
 
-    //         for i in &self.adj_list {
-    //             if !visited[i.0] {
-    //                 visited.insert(i.0.to_string(), true);
-    //                 deq.push_back(i.0.to_string());
-    //             }
-    //         }
-    //     }
+            for i in &self.adj_list {
+                if !visited[i.0] {
+                    visited.insert(i.0.to_string(), true);
+                    deq.push_back(i.0.to_string());
+                }
+            }
+        }
 
-    //     let timelapsed = Instant::now();
-    //     println!(
-    //         "Time Elapsed using BFS: {:?}",
-    //         timelapsed.duration_since(start)
-    //     );
+        let timelapsed = Instant::now();
+        println!(
+            "Time Elapsed using BFS: {:?}",
+            timelapsed.duration_since(start)
+        );
 
-    //     self.path.path.push(self.final_value.clone());
-    // }
+        self.connections.path.push(self.final_value.clone());
+    }
 
-    // //Nice little change of code :D
-    // fn dfs_traversal(&mut self, src: String, des: String) -> () {
-    //     self.final_value.from = src.clone();
-    //     self.final_value.to = des.clone();
+    //Nice little change of code :D
+    fn dfs_traversal(&mut self, src: String, des: String) -> () {
+        self.final_value.from = src.clone();
+        self.final_value.to = des.clone();
 
-    //     let start = Instant::now();
-    //     let mut visited: HashMap<String, bool> = HashMap::new();
-    //     let mut deq: VecDeque<String> = Default::default();
+        let start = Instant::now();
+        let mut visited: HashMap<String, bool> = HashMap::new();
+        let mut deq: VecDeque<String> = Default::default();
 
-    //     while !deq.is_empty() {
-    //         self.final_value
-    //             .actors
-    //             .push(deq.front().expect("").to_string());
-    //         deq.pop_front();
+        while !deq.is_empty() {
+            self.final_value
+                .actors
+                .push(deq.front().expect("").to_string());
+            deq.pop_front();
 
-    //         for i in &self.adj_list {
-    //             if !visited[i.0] {
-    //                 visited.insert(i.0.to_string(), true);
-    //                 deq.push_front(i.0.to_string());
-    //             }
-    //         }
-    //     }
+            for i in &self.adj_list {
+                if !visited[i.0] {
+                    visited.insert(i.0.to_string(), true);
+                    deq.push_front(i.0.to_string());
+                }
+            }
+        }
 
-    //     let timelapsed = Instant::now();
-    //     println!(
-    //         "Time Elapsed using DFS{:?}",
-    //         timelapsed.duration_since(start)
-    //     );
-    //     self.path.path.push(self.final_value.clone());
-    // }
+        let timelapsed = Instant::now();
+        println!(
+            "Time Elapsed using DFS{:?}",
+            timelapsed.duration_since(start)
+        );
+        self.connections.path.push(self.final_value.clone());
+    }
 
     //Create getter function for path :)
 }
