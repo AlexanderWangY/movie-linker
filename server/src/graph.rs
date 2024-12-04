@@ -159,31 +159,40 @@ impl MovieGraph {
     //Nice little change of code :D
     fn dfs_traversal(&mut self, src: String, des: String) -> () {
         self.final_value.from = src.clone();
-        self.final_value.to = des.clone();
 
         let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
         let mut deq: VecDeque<String> = Default::default();
 
+        visited.insert(src.clone(), true);
+        deq.push_back(src.clone());
+
         while !deq.is_empty() {
-            self.final_value
-                .actors
-                .push(deq.front().expect("").to_string());
+            self.final_value.to = deq.front().expect("").to_string();
+            self.final_value.actors = self.adj_list[&src.to_string()][&des.to_string()].clone().into_iter().collect();
+            if self.final_value.to == des.to_string(){
+                self.connections.found = true;
+                break;
+            }
+
             deq.pop_front();
 
             for i in &self.adj_list {
                 if !visited[i.0] {
                     visited.insert(i.0.to_string(), true);
                     deq.push_front(i.0.to_string());
+                    self.final_value.from = i.0.to_string();
                 }
             }
-        }
 
-        let timelapsed = Instant::now();
-        println!(
-            "Time Elapsed using DFS{:?}",
-            timelapsed.duration_since(start)
-        );
-        self.connections.path.push(self.final_value.clone());
+            self.connections.path.push(self.final_value.clone());
+
+            let timelapsed = Instant::now();
+            println!(
+                "Time Elapsed using DFS{:?}",
+                timelapsed.duration_since(start)
+            );
+            self.connections.path.push(self.final_value.clone());
+        }
     }
 }
