@@ -139,7 +139,7 @@ impl MovieGraph {
             deq.pop_front();
 
             for i in &self.adj_list[&src.to_string()] {
-                if !visited[i.0] {
+                if !visited.contains_key(i.0) || !visited[i.0]{
                     visited.insert(i.0.to_string(), true);
                     deq.push_back(i.0.to_string());
                     self.final_value.from = i.0.to_string();
