@@ -4,33 +4,28 @@
 
 	// Supports weights 100-900
 	import '@fontsource-variable/inter';
-
+  import movies from '$lib/data/output.json';
 	import { Autocomplete } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption } from '@skeletonlabs/skeleton';
+  import { popup } from '@skeletonlabs/skeleton';
+  import type { PopupSettings } from '@skeletonlabs/skeleton';
 
-	let input = '';
-  let selected = false;
 
-	const test: AutocompleteOption<string>[] = [
-		{ label: 'Meow', value: 'meow' },
-		{ label: 'Miao', value: 'miao' },
-		{ label: 'Goon', value: 'goon' },
-		{ label: 'Hawk', value: 'Hawk' },
-		{ label: 'Tuah', value: 'Tuah' },
-		{ label: 'Hawk Tuah', value: 'Hawk Tuah' },
-		{ label: 'Tuah', value: 'Tuah' },
-		{ label: 'Tuah', value: 'Tuah' },
-		{ label: 'Bruzz', value: 'Bruzz' },
-		{ label: 'Tuah', value: 'Tuah' },
-		{
-			label: 'Astonishing Tales of Terror: Rocktapussy!',
-			value: 'Astonishing Tales of Terror: Rocktapussy!'
-		}
-	];
+  let popupSettings: PopupSettings = {
+    event: 'focus-click',
+    target: 'popupAutocomplete',
+    placement: 'bottom',
+  };
+
+	let input: string = '';
+
+	const movieOptions: AutocompleteOption<string>[] = movies.movies.map((val) => ({
+    value: val,
+    label: val
+  }))
 
 	function onSelect(event: CustomEvent<AutocompleteOption<string>>): void {
 		input = event.detail.label;
-    selected = true;
 		// TODO: SEND REQUEST TO SERVER THEN DISPLAY RESULT
 	}
 </script>
@@ -44,21 +39,33 @@
 
 	<!-- Autocomplete Search from skeleton lib -->
 	<div class="flex min-h-full max-w-full grow flex-col items-center p-4 pt-16">
-		<div class="w-1/2">
+		<div class="w-1/2 flex flex-col gap-y-5">
 			<input
 				class="input w-full rounded-md border-stone-700 bg-neutral-700 px-4 py-2 text-zinc-300"
 				type="search"
-				name="demo"
+				name="autocomplete-search"
 				bind:value={input}
-        on:input={() => selected = false}
-				placeholder="Search..."
+				placeholder="Movie 1..."
+        use:popup={popupSettings}
 			/>
-			<!-- WHY IS IT NOT WIDE ENOUGH; ALSO SIZE CHANGES BASED ON RESULT; FIXES IF MIN W = FULL BUT THATS CLAPPED -->
-			{#if input !== '' && !selected}
-				<div class="card mt-2 w-full rounded-md bg-neutral-700 p-2 text-zinc-100" tabindex="-1">
-					<Autocomplete bind:input options={test} on:selection={onSelect} />
-				</div>
-			{/if}
+      <!-- <div 
+        data-popup="popupAutocomplete"
+        class="card mt-2 w-1/2 max-h-48 rounded-md bg-neutral-700 p-2 text-zinc-100 overflow-y-auto" tabindex="-1">
+        <Autocomplete 
+          bind:input={input}
+          options={movieOptions}
+          on:selection={onSelect} 
+        />
+      </div> -->
+
+      <input
+        class="input w-full rounded-md border-stone-700 bg-neutral-700 px-4 py-2 text-zinc-300"
+        type="search"
+        name="autocomplete-search"
+        bind:value={input}
+        placeholder="Movie 2..."
+        use:popup={popupSettings}
+      />
 		</div>
 	</div>
 
