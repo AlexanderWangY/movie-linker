@@ -21,6 +21,8 @@ struct Connection{
     to: String
 }
 
+//Hopefully this is allowed???
+#[allow(unconditional_recursion)]
 impl Connection {
     pub fn clone(&mut self) -> Connection{
         let x = self.clone();
