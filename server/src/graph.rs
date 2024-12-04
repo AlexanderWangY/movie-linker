@@ -7,6 +7,7 @@ use std::{
 use std::{collections::VecDeque, fs::File, io::{BufWriter, Write}, time::Instant};
 use csv::Reader;
 use serde::{Deserialize, Serialize};
+use tokio::time::error::Elapsed;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Record {
@@ -121,7 +122,6 @@ impl MovieGraph {
 
         Ok(())
     }
-
     fn bfs_traversal(&mut self, src: String, des: String) -> (){
         self.final_value.from = src.clone();
         self.final_value.to = des.clone();
