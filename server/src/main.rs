@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut graph = MovieGraph::new();
 
-    match graph.parse_csv(String::from("moviedatanew.csv")) {
+    match graph.parse_csv(String::from("output.csv")) {
         Ok(_) => {
             println!("Successfully parsed through")
         }
