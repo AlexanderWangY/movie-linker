@@ -24,9 +24,8 @@ struct Connection{
 //Hopefully this is allowed???
 #[allow(unconditional_recursion)]
 impl Connection {
-    pub fn clone(&mut self) -> Connection{
-        let x = self.clone();
-        return x;
+    pub fn clone(&self) -> Self{
+        return self.clone();
     }
 }
 
@@ -177,4 +176,6 @@ impl MovieGraph {
         println!("Time Elapsed using DFS{:?}", timelapsed.duration_since(start));
         self.path.path.push(self.final_value.clone());
     }
+
+    //Create getter function for path :)
 }
