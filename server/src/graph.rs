@@ -138,7 +138,7 @@ impl MovieGraph {
 
             deq.pop_front();
 
-            for i in &self.adj_list {
+            for i in &self.adj_list[&src.to_string()] {
                 if !visited[i.0] {
                     visited.insert(i.0.to_string(), true);
                     deq.push_back(i.0.to_string());
@@ -177,7 +177,7 @@ impl MovieGraph {
 
             deq.pop_front();
 
-            for i in &self.adj_list {
+            for i in &self.adj_list[&src.to_string()] {
                 if !visited[i.0] {
                     visited.insert(i.0.to_string(), true);
                     deq.push_front(i.0.to_string());
