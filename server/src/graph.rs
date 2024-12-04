@@ -16,10 +16,32 @@ struct Record {
 }
 
 #[derive(Debug)]
+struct Connection{
+    actors: Vec<String>, 
+    from: String,
+    to: String
+}
+
+//Hopefully this is allowed???
+#[allow(unconditional_recursion)]
+impl Connection {
+    pub fn clone(&self) -> Self{
+        return self.clone();
+    }
+}
+
+#[derive(Debug)]
+struct Path{
+    path: Vec<Connection>
+}
+
+#[derive(Debug)]
 #[allow(dead_code)]
 pub struct MovieGraph {
     // Map of movie names, their respective linked movie, and all the actors that connect them
-    adj_list: HashMap<String, Vec<String>>,
+    adj_list: HashMap<String, HashMap<String, HashSet<String>>>,
+    final_value: Connection,
+    path: Path
 }
 
 #[allow(dead_code)]
@@ -27,6 +49,14 @@ impl MovieGraph {
     pub fn new() -> Self {
         MovieGraph {
             adj_list: HashMap::new(),
+            final_value: Connection { 
+                from: ("".to_string()), 
+                to: ("".to_string()), 
+                actors: (Vec::<String>::new())
+            },
+            path: Path{
+                path: vec![]
+            }
         }
     }
 
@@ -92,18 +122,19 @@ impl MovieGraph {
 
         Ok(())
     }
+    fn bfs_traversal(&mut self, src: String, des: String) -> (){
+        self.final_value.from = src.clone();
+        self.final_value.to = des.clone();
 
-    fn bfs_traversal(&mut self, src : String){
         let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
-        let mut deq: VecDeque<String> = VecDeque::new();
+        let mut deq: VecDeque<String> = Default::default();
         
         visited.insert(src.clone(), true);
         deq.push_back(src);
 
         while !deq.is_empty(){
-            let front = deq.front();
-            //VISIT FRONT
+            self.final_value.actors.push(deq.front().expect("").to_string());
             deq.pop_front();
 
             for i in &self.adj_list{
@@ -116,21 +147,21 @@ impl MovieGraph {
 
         let timelapsed = Instant::now();
         println!("Time Elapsed using BFS: {:?}", timelapsed.duration_since(start));
-        //Return value here
+        
+        self.path.path.push(self.final_value.clone());
     }
 
     //Nice little change of code :D
-    fn dfs_traversal(&mut self, src : String){
+    fn dfs_traversal(&mut self, src: String, des: String) -> (){
+        self.final_value.from = src.clone();
+        self.final_value.to = des.clone();
+
         let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
-        let mut deq: VecDeque<String> = VecDeque::new();
-        
-        visited.insert(src.clone(), true);
-        deq.push_front(src);
+        let mut deq: VecDeque<String> = Default::default();
 
         while !deq.is_empty(){
-            let front = deq.front();
-            //VISIT FRONT
+            self.final_value.actors.push(deq.front().expect("").to_string());
             deq.pop_front();
 
             for i in &self.adj_list{
@@ -143,6 +174,8 @@ impl MovieGraph {
 
         let timelapsed = Instant::now();
         println!("Time Elapsed using DFS{:?}", timelapsed.duration_since(start));
-        //Return value here
+        self.path.path.push(self.final_value.clone());
     }
+
+    //Create getter function for path :)
 }
