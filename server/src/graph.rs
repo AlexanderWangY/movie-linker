@@ -164,6 +164,22 @@ impl MovieGraph {
         Path { linkage: None }
     }
 
+    pub fn is_connected(&self, from: String, to: String) -> Option<Connection> {
+        if let Some(neighbors) = self.adj_list.get(&from) {
+            if neighbors.contains_key(&to) {
+                return Some(Connection {
+                    to: to.clone(),
+                    from,
+                    actor: neighbors.get(&to).unwrap().clone(),
+                });
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
     // fn bfs_traversal(&mut self, src: String, des: String) -> () {
     //     self.final_value.from = src.clone();
     //     self.final_value.to = des.clone();

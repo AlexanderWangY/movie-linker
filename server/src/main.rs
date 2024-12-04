@@ -53,6 +53,30 @@ async fn get_bfs(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &
     "Check the terminal\n"
 }
 
+async fn connected(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &'static str {
+    let req: BFSRequest = bfs_req.0;
+
+    if req.from.is_empty() {
+        return "KYS";
+    }
+
+    if req.to.is_empty() {
+        return "KYS EVEN MORE";
+    }
+
+    let graph = state.graph.lock().unwrap();
+
+    let hawk = graph.is_connected(req.from, req.to);
+
+    if let Some(tuah) = hawk {
+        println!("Connected through {:?}", tuah.actor);
+    } else {
+        println!("Not connected bruzz");
+    }
+
+    "Check the terminal"
+}
+
 #[tokio::main]
 async fn main() {
     let state = AppState {
@@ -72,7 +96,10 @@ async fn main() {
         }
     }
 
-    let app: Router<()> = Router::new().route("/bfs", get(get_bfs)).with_state(state);
+    let app: Router<()> = Router::new()
+        .route("/bfs", get(get_bfs))
+        .route("/connected", get(connected))
+        .with_state(state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     if let Ok(addr) = listener.local_addr() {
         println!("Server running on http://{}", addr);
