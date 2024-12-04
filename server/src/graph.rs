@@ -55,37 +55,43 @@ impl MovieGraph {
         let mut reader = Reader::from_path(path)?;
         let iter = reader.deserialize::<Record>();
 
-        let mut count = 0;
-
         let now = Instant::now();
+
+        let mut connections: Vec<Record> = Vec::new();
+
         for line in iter {
-            match line {
-                Ok(record) => {
-                    count += 1;
+            let record: Record = line?;
 
-                    let movie1 = &record.movie1;
-                    let movie2 = &record.movie2;
-                    let actor = &record.actor;
-
-                    println!("{count} From: {movie1} <-> To: {movie2} Actor: {actor}");
-
-                    self.adj_list
-                        .entry(movie1.clone())
-                        .or_default()
-                        .entry(movie2.clone())
-                        .or_default()
-                        .insert(actor.clone());
-
-                    self.adj_list
-                        .entry(movie2.clone())
-                        .or_default()
-                        .entry(movie1.clone())
-                        .or_default()
-                        .insert(actor.clone());
-                }
-                Err(err) => println!("Error parsing: {:?}", err),
-            }
+            connections.push(record);
         }
+        // for line in iter {
+        //     match line {
+        //         Ok(record) => {
+        //             count += 1;
+
+        //             let movie1 = &record.movie1;
+        //             let movie2 = &record.movie2;
+        //             let actor = &record.actor;
+
+        //             println!("{count} From: {movie1} <-> To: {movie2} Actor: {actor}");
+
+        //             self.adj_list
+        //                 .entry(movie1.clone())
+        //                 .or_default()
+        //                 .entry(movie2.clone())
+        //                 .or_default()
+        //                 .insert(actor.clone());
+
+        //             self.adj_list
+        //                 .entry(movie2.clone())
+        //                 .or_default()
+        //                 .entry(movie1.clone())
+        //                 .or_default()
+        //                 .insert(actor.clone());
+        //         }
+        //         Err(err) => println!("Error parsing: {:?}", err),
+        //     }
+        // }
 
         println!("Time taken: {:.2?}", now.elapsed());
 
