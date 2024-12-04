@@ -33,7 +33,23 @@ impl Connection {
 
 #[derive(Debug)]
 struct Path{
-    path: Vec<Connection>
+    path: Vec<Connection>,
+    found: bool
+}
+
+#[allow(dead_code)]
+impl Path{
+    //getter method - use if needed
+    pub fn get_path(&mut self) -> &Vec<Connection>{
+        let newvec = &self.path;
+        return newvec;
+    }
+
+    pub fn display_path(self) -> (){
+        for i in self.path{
+            println!("{:}, {:}", i.from, i.to);
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -56,7 +72,8 @@ impl MovieGraph {
                 to : "".to_string()
             },
             connections: Path{
-                path: vec![]
+                path: vec![],
+                found: false
             }
         }
     }
@@ -103,27 +120,33 @@ impl MovieGraph {
 
     pub fn bfs_traversal(&mut self, src: String, des: String) -> () {
         self.final_value.from = src.clone();
-        self.final_value.to = des.clone();
 
         let start = Instant::now();
         let mut visited: HashMap<String, bool> = HashMap::new();
         let mut deq: VecDeque<String> = Default::default();
 
         visited.insert(src.clone(), true);
-        deq.push_back(src);
+        deq.push_back(src.clone());
 
         while !deq.is_empty() {
-            self.final_value
-                .actors
-                .push(deq.front().expect("").to_string());
+            self.final_value.to = deq.front().expect("").to_string();
+            self.final_value.actors = self.adj_list[&src.to_string()][&des.to_string()].clone().into_iter().collect();
+            if self.final_value.to == des.to_string(){
+                self.connections.found = true;
+                break;
+            }
+
             deq.pop_front();
 
             for i in &self.adj_list {
                 if !visited[i.0] {
                     visited.insert(i.0.to_string(), true);
                     deq.push_back(i.0.to_string());
+                    self.final_value.from = i.0.to_string();
                 }
             }
+
+            self.connections.path.push(self.final_value.clone());
         }
 
         let timelapsed = Instant::now();
@@ -131,8 +154,6 @@ impl MovieGraph {
             "Time Elapsed using BFS: {:?}",
             timelapsed.duration_since(start)
         );
-
-        self.connections.path.push(self.final_value.clone());
     }
 
     //Nice little change of code :D
@@ -165,6 +186,4 @@ impl MovieGraph {
         );
         self.connections.path.push(self.final_value.clone());
     }
-
-    //Create getter function for path :)
 }

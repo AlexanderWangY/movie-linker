@@ -5,21 +5,6 @@ use std::error::Error;
 use graph::MovieGraph;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // let mut reader = csv::Reader::from_path("moviedatanew.csv")?;
-    // for (i, result) in reader.records().enumerate() {
-    //     match result {
-    //         Ok(_) => {
-    //             println!("{i}, processed fine");
-    //         }
-    //         Err(err) => {
-    //             eprintln!("Error on record {}: {}", i, err);
-    //             break; // or continue if you want to skip errors
-    //         }
-    //     }
-    // }
-
-    // Ok(())
-
     let mut graph = MovieGraph::new();
 
     match graph.parse_csv(String::from("output.csv")) {
@@ -32,7 +17,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     graph.bfs_traversal("Beg".to_string(), "Digging Up the Marrow".to_string());
-    
-
     Ok(())
 }
