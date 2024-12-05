@@ -11,6 +11,7 @@
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import LinkedList from '../Visualization/LinkedList.svelte';
 	import type { Connection } from '../Visualization/LinkedTypes';
+	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 
 	const path: Connection[] = [
 		{
@@ -47,13 +48,22 @@
 		input = event.detail.label;
 		// TODO: SEND REQUEST TO SERVER THEN DISPLAY RESULT
 	}
+
+	let value: number = 0;
+
 </script>
 
 <div class="m-0 flex min-h-screen w-full flex-col justify-between bg-neutral-900">
-	<div
-		class="flex h-10 w-full items-center justify-center pb-8 pt-32 text-center text-5xl font-bold text-zinc-100"
-	>
+	<div class="flex h-10 w-full items-center justify-center pb-8 pt-32 text-center text-5xl font-bold text-zinc-100">
 		Six Degrees
+	</div>
+	
+	<div class="flex flex-col justify-center items-center pt-10">
+		<RadioGroup active="variant-filled-primary" hover="hover:variant-soft-primary">
+			<RadioItem bind:group={value} name="BFS" value={0}>BFS</RadioItem>
+			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem>
+			 
+		</RadioGroup>
 	</div>
 
 	<!-- Autocomplete Search from skeleton lib -->

@@ -10,7 +10,7 @@
 	<div class="h-10 w-1 bg-zinc-500"></div>
 	<div class="text-center my-2">
 		{#each actors as actor}
-			<p class="text-zinc-400">{actor}</p>
+			<p class="text-zinc-300 text-lg">{actor}</p>
 		{/each}
 	</div>
     <div class="h-10 w-1 bg-zinc-500 relative">
