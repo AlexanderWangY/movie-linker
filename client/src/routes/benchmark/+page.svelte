@@ -1,36 +1,25 @@
-<!-- Imports -->
 <script lang="ts">
-	import SixDegreeScreen from '$lib/components/SixDegrees/SixDegreeScreen.svelte';
-
 	// Supports weights 100-900
 	import '@fontsource-variable/inter';
 	import movies from '$lib/data/output.json';
-	import type { AutocompleteOption } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
-	import LinkedList from '../Visualization/LinkedList.svelte';
-	import type { Connection } from '../Visualization/LinkedTypes';
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 	import { ProgressBar } from '@skeletonlabs/skeleton';
-	import { goto } from '$app/navigation';
-
+	import type { Connection } from '$lib/components/Visualization/LinkedTypes';
 	const MovieSet = new Set();
 
 	movies.movies.forEach((movie) => MovieSet.add(movie));
 
 	interface Response {
-		path: Connection[];
-		time: number;
-		traversal_count: number;
+		found?: boolean;
+		time?: number;
+		traversal_count?: number;
 	}
 
-	interface Path {
-		path: Connection[];
-	}
+	let pathbfs: Response = {};
+	let pathdfs: Response = {};
 
-	let path: Path = {
-		path: []
-	};
+
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -48,19 +37,17 @@
 			console.log('Error, movies not found');
 			return;
 		}
+		pathbfs = {}
+		pathdfs = {}
 
-		path.path = [];
-
-		const res = await fetch(
-			`http://localhost:8080/${value === 1 ? 'dfs_connected' : 'bfs_connected'}?from=${movie1_input}&to=${movie2_input}`,
-			{ mode: 'cors' }
-		);
-
+		const res = await fetch(`http://localhost:8080/bfs?from=${movie1_input}&to=${movie2_input}`)
 		const data: Response = await res.json();
 
-		console.log(data.path);
+		const res2 = await fetch(`http://localhost:8080/dfs?from=${movie1_input}&to=${movie2_input}`)
+		const data2: Response = await res2.json();
 
-		path.path = data.path;
+		pathbfs = data;
+		pathdfs = data2;
 	};
 
 </script>
@@ -70,14 +57,6 @@
 		Six Degrees
 		<span class="badge variant-filled text-lg rounded-3xl px-3">Using BFS</span>
 	</div>
-	
-
-	<!-- <div class="flex flex-col items-center justify-center pt-10">
-		<RadioGroup active="bg-neutral-900 text-zinc-300" hover="hover:bg-neutral-400">
-			<RadioItem bind:group={value} name="BFS" value={0}>BFS</RadioItem>
-			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem>
-		</RadioGroup>
-	</div> -->
 
 	<!-- Autocomplete Search from skeleton lib -->
 	<div class="flex min-h-full max-w-full flex-col items-center p-4 pt-16">
@@ -103,42 +82,48 @@
 
 		<button
 			on:click={fetchConnections}
-			class="mt-10 w-1/4 rounded-lg bg-stone-300 px-5 py-3 hover:cursor-pointer hover:bg-stone-400"
-			>Find!
-		</button>
-
-		<button 
-			on:click={goto('benchmark')}
-			class="mt-5 w-1/6 rounded-lg bg-green-700 text-stone-200 px-5 py-3 hover:cursor-pointer hover:bg-green-800">
-			Benchmark
+			class="mt-10 w-1/2 rounded-lg bg-stone-300 px-5 py-3 hover:cursor-pointer hover:bg-stone-400"
+			>Calculate benchmark!
 		</button>
 
 	</div>
 
-	<!-- <SixDegreeScreen /> -->
-
 	<div class="flex flex-col items-center gap-y-10 p-24">
 		<h1 class="pb-4 text-3xl font-bold text-zinc-100">Results</h1>
 		<!-- TODO: figure out getting server's response here -->
-		{#if path.path.length !== 0}
-			<LinkedList connections={path} />
+		{#if pathbfs.traversal_count}
+            <div class="mt-auto flex w-full flex-row gap-32 items-center justify-center p-8 pb-32">
+                <div>
+                    <h1 class="text-2xl font-bold text-zinc-100 text-center">BFS RESULTS</h1>
+                      <div class="flex flex-row gap-x-6">
+                        <div class="text-center text-zinc-100">
+                            Time Elapsed (ms):
+                            <div>{pathbfs.time}</div>
+                        </div>
+                        <div class="text-center text-zinc-100">
+                            Number of Connections:
+                            <div>{pathbfs.traversal_count}</div>
+                        </div>
+                      </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-zinc-100 text-center">DFS RESULTS</h1>
+                      <div class="flex flex-row gap-x-6">
+                        <div class="text-center text-zinc-100 font-bold">
+                            Time Elapsed (ms):
+                            <div>{pathdfs.time}</div>
+                        </div>
+                        <div class="text-center text-zinc-100 font-bold">
+                            Number of Connections:
+                            <div>{pathdfs.traversal_count}</div>
+                        </div>
+                      </div>  
+                </div>
+            </div>
 		{:else if ((movie1_input === "") || (movie2_input === ""))}
 			<p class="text-zinc-100 text-lg">Awaiting movies...</p>
 		{:else}
 			<ProgressBar />
 		{/if}
 	</div>
-
-	<!-- <div class="mt-auto flex w-full flex-col items-center justify-center p-8 pb-32">
-		<div class="flex w-full items-center justify-center">
-			<div class="px-20">
-				<div class="text-2xl font-bold text-zinc-100">Previous Guesses<br /></div>
-				<div class="text-center text-zinc-100">placeholder</div>
-			</div>
-			<div class="px-20">
-				<div class="text-2xl font-bold text-zinc-100">Guesses Left<br /></div>
-				<div class="text-center text-zinc-100">placeholder</div>
-			</div>
-		</div>
-	</div> -->
 </div>
