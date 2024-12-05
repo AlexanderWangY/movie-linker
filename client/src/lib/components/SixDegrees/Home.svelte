@@ -59,10 +59,9 @@
 	</div>
 	
 	<div class="flex flex-col justify-center items-center pt-10">
-		<RadioGroup active="variant-filled-primary" hover="hover:variant-soft-primary">
+		<RadioGroup active="bg-neutral-900 text-zinc-300" hover="hover:bg-neutral-400">
 			<RadioItem bind:group={value} name="BFS" value={0}>BFS</RadioItem>
-			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem>
-			 
+			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem> 
 		</RadioGroup>
 	</div>
 
