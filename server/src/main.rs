@@ -4,15 +4,15 @@ use std::sync::{Arc, Mutex};
 use axum::{
     extract::{Query, State},
     routing::get,
-    Router,
+    Json, Router,
 };
-use graph::MovieGraph;
-use serde::Deserialize;
+use graph::{Connection, MovieGraph};
+use serde::{Deserialize, Serialize};
 
 mod graph;
 
 #[derive(Deserialize)]
-struct BFSRequest {
+struct SearchRequest {
     from: String,
     to: String,
 }
@@ -22,71 +22,140 @@ struct AppState {
     graph: Arc<Mutex<MovieGraph>>,
 }
 
-async fn get_bfs(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &'static str {
-    let req: BFSRequest = bfs_req.0;
+#[derive(Serialize)]
+struct ConnectionResponse {
+    path: Vec<Connection>,
+    time: u128,
+    traversal_count: u32,
+}
 
-    if req.from.is_empty() {
-        return "KYS";
-    }
+#[derive(Serialize)]
+struct TimingResponse {
+    found: bool,
+    time: u128,
+    traversal_count: u32,
+}
 
-    if req.to.is_empty() {
-        return "KYS EVEN MORE";
-    }
+#[derive(Serialize)]
+struct NeighborResponse {
+    path: Option<Connection>,
+}
+
+async fn get_bfs_connections(
+    bfs_req: Query<SearchRequest>,
+    State(state): State<AppState>,
+) -> Json<ConnectionResponse> {
+    let req: SearchRequest = bfs_req.0;
 
     let graph = state.graph.lock().unwrap();
 
     let huzz = graph.bfs_traversal(req.from, req.to);
 
     if let Some(chuzz) = huzz.linkage {
-        for bruzz in chuzz {
-            println!(
-                "From {} to {} through {:?}",
-                bruzz.from, bruzz.to, bruzz.actor
-            );
-        }
+        Json(ConnectionResponse {
+            path: chuzz,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
     } else {
-        println!(
-            "No connection found! But technically you didn't win buddy, get on over 6 connections"
-        );
+        Json(ConnectionResponse {
+            path: vec![],
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
     }
-
-    "Check the terminal\n"
 }
 
+async fn get_dfs_connections(
+    dfs_req: Query<SearchRequest>,
+    State(state): State<AppState>,
+) -> Json<ConnectionResponse> {
+    let req: SearchRequest = dfs_req.0;
 
+    let graph = state.graph.lock().unwrap();
 
-async fn connected(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &'static str {
-    let req: BFSRequest = bfs_req.0;
+    let huzz = graph.dfs_traversal(req.from, req.to);
 
-    if req.from.is_empty() {
-        return "KYS";
+    if let Some(chuzz) = huzz.linkage {
+        Json(ConnectionResponse {
+            path: chuzz,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
+    } else {
+        Json(ConnectionResponse {
+            path: vec![],
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
     }
+}
 
-    if req.to.is_empty() {
-        return "KYS EVEN MORE";
+async fn get_dfs(
+    dfs_req: Query<SearchRequest>,
+    State(state): State<AppState>,
+) -> Json<TimingResponse> {
+    let req: SearchRequest = dfs_req.0;
+
+    let graph = state.graph.lock().unwrap();
+
+    let huzz = graph.newdfs(req.from, req.to);
+
+    if huzz.linkage.is_some() {
+        Json(TimingResponse {
+            found: true,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
+    } else {
+        Json(TimingResponse {
+            found: false,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
     }
+}
+
+async fn get_bfs(
+    bfs_req: Query<SearchRequest>,
+    State(state): State<AppState>,
+) -> Json<TimingResponse> {
+    let req: SearchRequest = bfs_req.0;
+
+    let graph = state.graph.lock().unwrap();
+
+    let huzz = graph.newbfs(req.from, req.to);
+
+    if huzz.linkage.is_some() {
+        Json(TimingResponse {
+            found: true,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
+    } else {
+        Json(TimingResponse {
+            found: false,
+            time: huzz.time_elapsed,
+            traversal_count: huzz.traverse_count,
+        })
+    }
+}
+
+async fn connected(
+    bfs_req: Query<SearchRequest>,
+    State(state): State<AppState>,
+) -> Json<NeighborResponse> {
+    let req: SearchRequest = bfs_req.0;
 
     let graph = state.graph.lock().unwrap();
 
     let hawk = graph.is_connected(req.from, req.to);
 
-    if let Some(tuah) = hawk {
-        println!("Connected through {:?}", tuah.actor);
-    } else {
-        println!("Not connected bruzz");
-    }
-
-    "Check the terminal"
+    Json(NeighborResponse { path: hawk })
 }
 
 #[tokio::main]
 async fn main() {
-    //Tests: Delete when done
-    let mut movies = MovieGraph::new();
-    let _ = movies.parse_csv(String::from("output.csv"));
-    println!("Starting BFS");
-    let _ = movies.newbfs("9 Souls".to_string(), "Last Friends".to_string());
-
     let state = AppState {
         graph: Arc::new(Mutex::new(MovieGraph::new())),
     };
@@ -105,7 +174,10 @@ async fn main() {
     }
 
     let app: Router<()> = Router::new()
+        .route("/bfs_connected", get(get_bfs_connections))
         .route("/bfs", get(get_bfs))
+        .route("/dfs_connected", get(get_dfs_connections))
+        .route("/dfs", get(get_dfs))
         .route("/connected", get(connected))
         .with_state(state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
