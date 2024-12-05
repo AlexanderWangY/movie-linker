@@ -5,7 +5,6 @@
 	// Supports weights 100-900
 	import '@fontsource-variable/inter';
 	import movies from '$lib/data/output.json';
-	import { Autocomplete } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
@@ -13,23 +12,23 @@
 	import type { Connection } from '../Visualization/LinkedTypes';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 
-	const path: Connection[] = [
-		{
-			from: 'Wonka',
-			to: 'Dune',
-			actor: ['Timothee Chalamet', 'Matthew', 'Alexander Wang']
-		},
-		{
-			from: 'Dune',
-			to: 'Xeon',
-			actor: ['Alexander Wang']
-		},
-		{
-			from: 'Xeon',
-			to: 'Paper Crush',
-			actor: ['Dominic']
-		}
-	];
+	const MovieSet = new Set();
+
+	movies.movies.forEach((movie) => MovieSet.add(movie));
+
+	interface Response {
+		path: Connection[];
+		time: number;
+		traversal_count: number;
+	}
+
+	interface Path {
+		path: Connection[];
+	}
+
+	let path: Path = {
+		path: []
+	};
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -37,31 +36,43 @@
 		placement: 'bottom'
 	};
 
-	let input: string = '';
-
-	const movieOptions: AutocompleteOption<string>[] = movies.movies.map((val) => ({
-		value: val,
-		label: val
-	}));
-
-	function onSelect(event: CustomEvent<AutocompleteOption<string>>): void {
-		input = event.detail.label;
-		// TODO: SEND REQUEST TO SERVER THEN DISPLAY RESULT
-	}
+	let movie1_input: string = '';
+	let movie2_input: string = '';
 
 	let value: number = 0;
 
+	const fetchConnections = async () => {
+		if (!MovieSet.has(movie1_input) || !MovieSet.has(movie2_input)) {
+			console.log('Error, movies not found');
+			return;
+		}
+
+		path.path = [];
+
+		const res = await fetch(
+			`http://localhost:8080/${value === 1 ? 'dfs_connected' : 'bfs_connected'}?from=${movie1_input}&to=${movie2_input}`,
+			{ mode: 'cors' }
+		);
+
+		const data: Response = await res.json();
+
+		console.log(data.path);
+
+		path.path = data.path;
+	};
 </script>
 
 <div class="m-0 flex min-h-screen w-full flex-col justify-between bg-neutral-900">
-	<div class="flex h-10 w-full items-center justify-center pb-8 pt-32 text-center text-5xl font-bold text-zinc-100">
+	<div
+		class="flex h-10 w-full items-center justify-center pb-8 pt-32 text-center text-5xl font-bold text-zinc-100"
+	>
 		Six Degrees
 	</div>
-	
-	<div class="flex flex-col justify-center items-center pt-10">
+
+	<div class="flex flex-col items-center justify-center pt-10">
 		<RadioGroup active="bg-neutral-900 text-zinc-300" hover="hover:bg-neutral-400">
 			<RadioItem bind:group={value} name="BFS" value={0}>BFS</RadioItem>
-			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem> 
+			<RadioItem bind:group={value} name="DFS" value={1}>DFS</RadioItem>
 		</RadioGroup>
 	</div>
 
@@ -72,37 +83,36 @@
 				class="input w-full rounded-md border-stone-700 bg-neutral-700 px-4 py-2 text-zinc-300"
 				type="search"
 				name="autocomplete-search"
-				bind:value={input}
+				bind:value={movie1_input}
 				placeholder="Movie 1..."
 				use:popup={popupSettings}
 			/>
-			<!-- <div 
-        data-popup="popupAutocomplete"
-        class="card mt-2 w-1/2 max-h-48 rounded-md bg-neutral-700 p-2 text-zinc-100 overflow-y-auto" tabindex="-1">
-        <Autocomplete 
-          bind:input={input}
-          options={movieOptions}
-          on:selection={onSelect} 
-        />
-      </div> -->
 
 			<input
 				class="input w-full rounded-md border-stone-700 bg-neutral-700 px-4 py-2 text-zinc-300"
 				type="search"
 				name="autocomplete-search"
-				bind:value={input}
+				bind:value={movie2_input}
 				placeholder="Movie 2..."
 				use:popup={popupSettings}
 			/>
 		</div>
+
+		<button
+			on:click={fetchConnections}
+			class="mt-10 w-1/4 rounded-lg bg-blue-800 px-5 py-3 hover:cursor-pointer hover:bg-blue-950"
+			>Find!</button
+		>
 	</div>
 
 	<!-- <SixDegreeScreen /> -->
 
-	<div class="flex flex-col items-center justify-center p-32 gap-y-10">
+	<div class="flex flex-col items-center justify-center gap-y-10 p-32">
 		<h1 class="pb-4 text-3xl font-bold text-zinc-100">Results</h1>
 		<!-- TODO: figure out getting server's response here -->
-		<LinkedList connections={{ path: path }} />
+		{#if path.path.length !== 0}
+			<LinkedList connections={path} />
+		{/if}
 	</div>
 
 	<div class="mt-auto flex w-full flex-col items-center justify-center p-8 pb-32">

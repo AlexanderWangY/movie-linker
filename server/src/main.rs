@@ -8,6 +8,7 @@ use axum::{
 };
 use graph::{Connection, MovieGraph};
 use serde::{Deserialize, Serialize};
+use tower_http::cors::{Any, CorsLayer};
 
 mod graph;
 
@@ -173,13 +174,16 @@ async fn main() {
         }
     }
 
+    let cors = CorsLayer::new().allow_origin(Any);
+
     let app: Router<()> = Router::new()
         .route("/bfs_connected", get(get_bfs_connections))
         .route("/bfs", get(get_bfs))
         .route("/dfs_connected", get(get_dfs_connections))
         .route("/dfs", get(get_dfs))
         .route("/connected", get(connected))
-        .with_state(state);
+        .with_state(state)
+        .layer(cors);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     if let Ok(addr) = listener.local_addr() {
         println!("Server running on http://{}", addr);
