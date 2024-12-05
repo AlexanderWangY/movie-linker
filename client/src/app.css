@@ -1,0 +1,9 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer utilities {
+    .arrow {
+        clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+    }
+}

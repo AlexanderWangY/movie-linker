@@ -1,0 +1,10 @@
+MENU:
+- add interactivity1
+
+GAME:
+- search
+\_ autofill
+\_ if no autofill, account for errors, eg message saying "This movie does not exist"
+- connect frontend and backend
+- graph visualization (svelthree if we want it to be dragable and shit)
+- ask how we want this to run, ex. just one run each time or number of tries per run (aka current)
