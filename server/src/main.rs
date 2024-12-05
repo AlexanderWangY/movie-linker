@@ -6,7 +6,7 @@ use axum::{
     routing::get,
     Router,
 };
-use graph::{Connection, MovieGraph};
+use graph::MovieGraph;
 use serde::Deserialize;
 
 mod graph;
@@ -53,6 +53,8 @@ async fn get_bfs(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &
     "Check the terminal\n"
 }
 
+
+
 async fn connected(bfs_req: Query<BFSRequest>, State(state): State<AppState>) -> &'static str {
     let req: BFSRequest = bfs_req.0;
 
@@ -79,6 +81,12 @@ async fn connected(bfs_req: Query<BFSRequest>, State(state): State<AppState>) ->
 
 #[tokio::main]
 async fn main() {
+    //Tests: Delete when done
+    let mut movies = MovieGraph::new();
+    let _ = movies.parse_csv(String::from("output.csv"));
+    println!("Starting BFS");
+    let _ = movies.newbfs("9 Souls".to_string(), "Last Friends".to_string());
+
     let state = AppState {
         graph: Arc::new(Mutex::new(MovieGraph::new())),
     };
