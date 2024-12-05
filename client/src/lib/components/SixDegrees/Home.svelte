@@ -41,12 +41,9 @@
 	let movie1_input: string = '';
 	let movie2_input: string = '';
 
-	let bfsObject = {};
-	let dfsObject = {};
-
 	let value: number = 0;
 
-	const fetchBoth = async () => {
+	const fetchConnections = async () => {
 		if (!MovieSet.has(movie1_input) || !MovieSet.has(movie2_input)) {
 			console.log('Error, movies not found');
 			return;
@@ -54,14 +51,12 @@
 
 		path.path = [];
 
-		const data = await fetch(`http://localhost:8080/$bfs?from=${movie1}&to=${movie2}`);
-    const newBFS: Response = await data.json();
+		const res = await fetch(
+			`http://localhost:8080/${value === 1 ? 'dfs_connected' : 'bfs_connected'}?from=${movie1_input}&to=${movie2_input}`,
+			{ mode: 'cors' }
+		);
 
-    const data = await fetch(`http://localhost:8080/dfs?from=${movie1}&to=${movie2}`);
-    const newDFS = await data.json();
-  );
-
-		const data: Response = await data.json();
+		const data: Response = await res.json();
 
 		console.log(data.path);
 
@@ -113,7 +108,7 @@
 		</button>
 
 		<button 
-			on:click={goto('/benchmark')}
+			on:click={goto('benchmark')}
 			class="mt-5 w-1/6 rounded-lg bg-green-700 text-stone-200 px-5 py-3 hover:cursor-pointer hover:bg-green-800">
 			Benchmark
 		</button>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Home2 from "$lib/components/SixDegrees/Home2.svelte";
+	import Home from "$lib/components/SixDegrees/Home.svelte";
 
 </script>
 
-<Home2 />
+<Home />
