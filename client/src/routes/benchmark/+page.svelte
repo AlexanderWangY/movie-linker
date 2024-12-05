@@ -5,20 +5,21 @@
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 	import { ProgressBar } from '@skeletonlabs/skeleton';
-
+	import type { Connection } from '$lib/components/Visualization/LinkedTypes';
 	const MovieSet = new Set();
 
 	movies.movies.forEach((movie) => MovieSet.add(movie));
 
 	interface Response {
-		path: Connection[];
-		time: number;
-		traversal_count: number;
+		found?: boolean;
+		time?: number;
+		traversal_count?: number;
 	}
 
-	let path: Path = {
-		path: []
-	};
+	let pathbfs: Response = {};
+	let pathdfs: Response = {};
+
+
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -36,19 +37,17 @@
 			console.log('Error, movies not found');
 			return;
 		}
+		pathbfs = {}
+		pathdfs = {}
 
-		path.path = [];
-
-		const res = await fetch(
-			`http://localhost:8080/${value === 1 ? 'dfs_connected' : 'bfs_connected'}?from=${movie1_input}&to=${movie2_input}`,
-			{ mode: 'cors' }
-		);
-
+		const res = await fetch(`http://localhost:8080/bfs?from=${movie1_input}&to=${movie2_input}`)
 		const data: Response = await res.json();
 
-		console.log(data.path);
+		const res2 = await fetch(`http://localhost:8080/dfs?from=${movie1_input}&to=${movie2_input}`)
+		const data2: Response = await res2.json();
 
-		path.path = data.path;
+		pathbfs = data;
+		pathdfs = data2;
 	};
 
 </script>
@@ -92,18 +91,18 @@
 	<div class="flex flex-col items-center gap-y-10 p-24">
 		<h1 class="pb-4 text-3xl font-bold text-zinc-100">Results</h1>
 		<!-- TODO: figure out getting server's response here -->
-		{#if path.path.length !== 0}
+		{#if pathbfs.traversal_count}
             <div class="mt-auto flex w-full flex-row gap-32 items-center justify-center p-8 pb-32">
                 <div>
                     <h1 class="text-2xl font-bold text-zinc-100 text-center">BFS RESULTS</h1>
                       <div class="flex flex-row gap-x-6">
                         <div class="text-center text-zinc-100">
                             Time Elapsed (ms):
-                            <div>meow</div>
+                            <div>{pathbfs.time}</div>
                         </div>
                         <div class="text-center text-zinc-100">
                             Number of Connections:
-                            <div>meow</div>
+                            <div>{pathbfs.traversal_count}</div>
                         </div>
                       </div>
                 </div>
@@ -112,11 +111,11 @@
                       <div class="flex flex-row gap-x-6">
                         <div class="text-center text-zinc-100 font-bold">
                             Time Elapsed (ms):
-                            <div>meow</div>
+                            <div>{pathdfs.time}</div>
                         </div>
                         <div class="text-center text-zinc-100 font-bold">
                             Number of Connections:
-                            <div>meow</div>
+                            <div>{pathdfs.traversal_count}</div>
                         </div>
                       </div>  
                 </div>
